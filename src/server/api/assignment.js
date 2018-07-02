@@ -99,9 +99,7 @@ export function getContacts(assignment, contactsFilter, organization, campaign, 
   }
 
   if (!forCount) {
-    query = query.orderByRaw(
-      'message_status DESC, updated_at'
-    )
+    query = query.orderByRaw('message_status DESC, updated_at')
   }
 
   return query
