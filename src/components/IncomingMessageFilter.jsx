@@ -50,6 +50,7 @@ class IncomingMessageFilter extends Component {
 
     this.onMessageFilterSelectChanged = this.onMessageFilterSelectChanged.bind(this)
     this.onCampaignSelectChanged = this.onCampaignSelectChanged.bind(this)
+    this.onTexterSelectChanged = this.onTexterSelectChanged.bind(this)
   }
 
   onMessageFilterSelectChanged(event, index, values) {
@@ -65,22 +66,31 @@ class IncomingMessageFilter extends Component {
     })
 
     const messageStatusesString = Array.from(messageStatuses).join(',')
-    if (this.props.onMessageFilterChanged !== undefined &&
-        typeof this.props.onMessageFilterChanged === 'function') {
-      this.props.onMessageFilterChanged(messageStatusesString)
-    }
+    this.props.onMessageFilterChanged(messageStatusesString)
   }
 
   onCampaignSelectChanged(event, index, value) {
     this.setState({ campaignFilter: value })
+    this.props.onCampaignChanged(value)
+  }
 
-    if (this.props.onCampaignChanged !== undefined &&
-        typeof this.props.onCampaignChanged === 'function') {
-      this.props.onCampaignChanged(value)
+  onTexterSelectChanged(event, index, value) {
+    this.setState({ texterFilter: value })
+    if (this.props.onAssignmentsFilterChanged !== undefined &&
+        typeof this.props.onAssignmentsFilterChanged === 'function') {
+      this.props.onAssignmentsFilterChanged({ texterId: value })
     }
   }
 
   render() {
+    const texters = [];
+    this.props.campaigns.forEach(campaign => {
+      campaign.assignments.forEach(assignment => {
+        if (assignment.texter && !texters.find((texter) => texter.id === assignment.texter.id)) {
+          texters.push(assignment.texter)
+        }
+      })
+    })
     return (
       <Card>
         <CardHeader title='Message Filter' actAsExpander showExpandableButton />
@@ -129,6 +139,24 @@ class IncomingMessageFilter extends Component {
               return <MenuItem key={campaign.id} value={campaign.id} primaryText={campaign.title} />
             })}
           </SelectField>
+          &nbsp;
+          <SelectField
+            value={this.state.texterFilter}
+            hintText='Pick a texter'
+            floatingLabelText='Texter'
+            floatingLabelFixed
+            onChange={this.onTexterSelectChanged}
+          >
+            {texters.map(texter => {
+              return (
+                <MenuItem
+                  key={texter.id}
+                  value={texter.id}
+                  primaryText={texter.displayName}
+                />
+              )
+            })}
+          </SelectField>
         </CardText>
       </Card>
     )
@@ -136,9 +164,9 @@ class IncomingMessageFilter extends Component {
 }
 
 IncomingMessageFilter.propTypes = {
-  onCampaignChanged: type.func,
-  campaigns: type.array,
-  onMessageFilterChanged: type.func
+  onCampaignChanged: type.func.isRequired,
+  campaigns: type.array.isRequired,
+  onMessageFilterChanged: type.func.isRequired
 }
 
 export default IncomingMessageFilter
